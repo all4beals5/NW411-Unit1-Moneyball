@@ -6,6 +6,7 @@
 ##################################################
 ### Install packages
 library(corrplot)
+library(PerformanceAnalytics)
 
 ##################################################
 ### Set working directory & read data
@@ -104,6 +105,7 @@ par(fig=c(0.5,1,0,0.3), new=TRUE)
 boxplot(moneyball$TEAM_BATTING_3B, horizontal=TRUE, width=1, col="seagreen")
 par(mfrow=c(1,1))
 
+# Calcualte singles (hits minus doubles, triples, homeruns)
 Singles <- moneyball$TEAM_BATTING_H-moneyball$TEAM_BATTING_2B-moneyball$TEAM_BATTING_3B-moneyball$TEAM_BATTING_HR
 
 par(mfrow=c(2,2), mai=c(0.5,0.5,0.5,0.2))
@@ -118,14 +120,21 @@ boxplot(Singles, horizontal=TRUE, width=1, col="seagreen")
 par(mfrow=c(1,1))
 
 ### Correlation matrix
-corrplot(cor(moneyball[3:17]))
-
-### 
+corrplot(cor(moneyball[3:17]), method="color", type="upper", tl.col="black", tl.cex=.7, addCoef.col="black", number.cex=.8)
+chart.Correlation(moneyball[3:17])
 
 ##################################################
 ### Preparation and transformations
 
 ### Imputation
+moneyballzero <- moneyball
+moneyballzero$TEAM_BATTING_SO[is.na(moneyballzero$TEAM_BATTING_SO)==TRUE] <- 0
+moneyballzero$TEAM_BASERUN_SB[is.na(moneyballzero$TEAM_BASERUN_SB)==TRUE] <- 0
+moneyballzero$TEAM_BASERUN_CS[is.na(moneyballzero$TEAM_BASERUN_CS)==TRUE] <- 0
+moneyballzero$TEAM_BATTING_HBP[is.na(moneyballzero$TEAM_BATTING_HBP)==TRUE] <- 0
+moneyballzero$TEAM_PITCHING_SO[is.na(moneyballzero$TEAM_PITCHING_SO)==TRUE] <- 0
+moneyballzero$TEAM_FIELDING_DP[is.na(moneyballzero$TEAM_FIELDING_DP)==TRUE] <- 0
+summary(moneyballzero)
 
 ### 
 
