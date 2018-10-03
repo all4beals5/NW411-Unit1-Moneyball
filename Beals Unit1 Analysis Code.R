@@ -122,18 +122,20 @@ par(mfrow=c(1,1))
 
 ### Correlation matrix
 ### NAs cause issues
-corrplot(cor(moneyball[3:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
+corrplot(cor(moneyball[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
 ### NAs removed
-corrplot(cor(moneyball[3:17], use="complete.obs"), method="color", type="upper", tl.col="black", tl.cex=.7, 
+corrplot(cor(moneyball[2:17], use="complete.obs"), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
 
 chart.Correlation(moneyball[3:17])
+chart.Correlation(moneyball[2:7])
+chart.Correlation(moneyball[,c(2,8:12)])
+chart.Correlation(moneyball[,c(2,13:17)])
 
 ##################################################
 ### Preparation and transformations
-
-### Recoding NAs to zero
+### Recoding NAs to zero (baseline)
 moneyballzero <- moneyball
 moneyballzero$TEAM_BATTING_SO[is.na(moneyballzero$TEAM_BATTING_SO)==TRUE] <- 0
 moneyballzero$TEAM_BASERUN_SB[is.na(moneyballzero$TEAM_BASERUN_SB)==TRUE] <- 0
@@ -144,7 +146,7 @@ moneyballzero$TEAM_FIELDING_DP[is.na(moneyballzero$TEAM_FIELDING_DP)==TRUE] <- 0
 summary(moneyballzero)
 
 ### NAs set to zero
-corrplot(cor(moneyballzero[3:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
+corrplot(cor(moneyballzero[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
 
 chart.Correlation(moneyballzero[3:11])
@@ -152,7 +154,33 @@ chart.Correlation(moneyball[3:11])
 chart.Correlation(moneyballzero[12:17])
 chart.Correlation(moneyball[12:17])
 
-### Normalize
+### Impute with mean
+moneyballmean <- moneyball
+moneyballmean$TEAM_BATTING_SO[is.na(moneyballmean$TEAM_BATTING_SO)==TRUE] <- mean(moneyballmean$TEAM_BATTING_SO, na.rm = TRUE)
+moneyballmean$TEAM_BASERUN_SB[is.na(moneyballmean$TEAM_BASERUN_SB)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_SB, na.rm = TRUE)
+moneyballmean$TEAM_BASERUN_CS[is.na(moneyballmean$TEAM_BASERUN_CS)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_CS, na.rm = TRUE)
+moneyballmean$TEAM_BATTING_HBP[is.na(moneyballmean$TEAM_BATTING_HBP)==TRUE] <- mean(moneyballmean$TEAM_BATTING_HBP, na.rm = TRUE)
+moneyballmean$TEAM_PITCHING_SO[is.na(moneyballmean$TEAM_PITCHING_SO)==TRUE] <- mean(moneyballmean$TEAM_PITCHING_SO, na.rm = TRUE)
+moneyballmean$TEAM_FIELDING_DP[is.na(moneyballmean$TEAM_FIELDING_DP)==TRUE] <- mean(moneyballmean$TEAM_FIELDING_DP, na.rm = TRUE)
+corrplot(cor(moneyballmean[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
+         addCoef.col="black", number.cex=.8)
+
+### Impute with median
+moneyballmedian <- moneyball
+moneyballmedian$TEAM_BATTING_SO[is.na(moneyballmedian$TEAM_BATTING_SO)==TRUE] <- median(moneyballmedian$TEAM_BATTING_SO, na.rm = TRUE)
+moneyballmedian$TEAM_BASERUN_SB[is.na(moneyballmedian$TEAM_BASERUN_SB)==TRUE] <- median(moneyballmedian$TEAM_BASERUN_SB, na.rm = TRUE)
+moneyballmedian$TEAM_BASERUN_CS[is.na(moneyballmedian$TEAM_BASERUN_CS)==TRUE] <- median(moneyballmedian$TEAM_BASERUN_CS, na.rm = TRUE)
+moneyballmedian$TEAM_BATTING_HBP[is.na(moneyballmedian$TEAM_BATTING_HBP)==TRUE] <- median(moneyballmedian$TEAM_BATTING_HBP, na.rm = TRUE)
+moneyballmedian$TEAM_PITCHING_SO[is.na(moneyballmedian$TEAM_PITCHING_SO)==TRUE] <- median(moneyballmedian$TEAM_PITCHING_SO, na.rm = TRUE)
+moneyballmedian$TEAM_FIELDING_DP[is.na(moneyballmedian$TEAM_FIELDING_DP)==TRUE] <- median(moneyballmedian$TEAM_FIELDING_DP, na.rm = TRUE)
+corrplot(cor(moneyballmedian[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
+         addCoef.col="black", number.cex=.8)
+
+### Transformation of Predictor Variables
+
+
+### Create new fields
+
 
 ##################################################
 ### Model creation
@@ -169,11 +197,3 @@ fullmodelzero <- lm(TARGET_WINS ~ TEAM_BATTING_H+TEAM_BATTING_2B+TEAM_BATTING_3B
 ##################################################
 ### Model selection
 
-##################################################
-### 
-
-##################################################
-### 
-
-##################################################
-### 
