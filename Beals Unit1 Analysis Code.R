@@ -138,14 +138,16 @@ chart.Correlation(moneyball[,c(2,13:17)])
 
 ##################################################
 ### Preparation and transformations
+### Review NA Values by Rows
+NAobservations <- rowSums(is.na(moneyball[3:17]))
+hist(NAobservations, breaks=c(0,1,2,3,4,5), right=FALSE)
+
 ### Review NA Values by Columns
 sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100
 sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100 > 5
 #************ Will definitely want to remove TEAM_BATTING_HBP from analysis
 
-### Review NA Values by Rows
-NAobservations <- rowSums(is.na(moneyball[3:17]))
-hist(NAobservations, breaks=c(0,1,2,3,4,5), right=FALSE)
+md.pattern(moneyball) # https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
 
 ### Recoding NAs to zero (baseline)
 moneyballzero <- moneyball
@@ -188,6 +190,10 @@ moneyballmedian$TEAM_FIELDING_DP[is.na(moneyballmedian$TEAM_FIELDING_DP)==TRUE] 
 corrplot(cor(moneyballmedian[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
 
+### Impute with MICE
+miceimputationstemp <- mice(moneyball, m=5, maxit=50, method="pmm", seed=500)
+summary(miceimputationstemp)
+imp_moneyball <- complete(miceimputationstemp,1)
 
 
 ### Transformation of Predictor Variables
