@@ -194,7 +194,11 @@ corrplot(cor(moneyballmedian[2:17]), method="color", type="upper", tl.col="black
 miceimputationstemp <- mice(moneyball, m=5, maxit=50, method="pmm", seed=500)
 summary(miceimputationstemp)
 imp_moneyball <- complete(miceimputationstemp,1)
-
+summary(imp_moneyball)
+corrplot(cor(imp_moneyball[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
+         addCoef.col="black", number.cex=.8)
+densityplot(miceimputationstemp)
+stripplot(miceimputationstemp)
 
 ### Transformation of Predictor Variables
 
