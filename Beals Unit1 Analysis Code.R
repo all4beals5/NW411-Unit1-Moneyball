@@ -7,6 +7,7 @@
 ### Install packages
 library(corrplot)
 library(PerformanceAnalytics)
+library(mice)
 
 ##################################################
 ### Set working directory & read data
@@ -22,6 +23,11 @@ hist(moneyball$TARGET_WINS, main="Likely Values of Target Wins", breaks=30) # kn
 par(mar=c(5, 10, 4, 2) + 0.1)
 boxplot(moneyball[3:17], horizontal=TRUE,las=2) # get a visual sense for values of predictor variables
 plot(moneyball[3:17])
+
+### Create new fields
+moneyball$TEAM_BATTING_1B <- moneyball$TEAM_BATTING_H-moneyball$TEAM_BATTING_2B-moneyball$TEAM_BATTING_3B-moneyball$TEAM_BATTING_HR
+moneyball$TEAM_BASERUN_SB_RATIO <- moneyball$TEAM_BASERUN_SB/(moneyball$TEAM_BASERUN_SB+moneyball$TEAM_BASERUN_CS)
+moneyball$TEAM_BASERUN_CS_RATIO <- moneyball$TEAM_BASERUN_CS/(moneyball$TEAM_BASERUN_SB+moneyball$TEAM_BASERUN_CS)
 
 ### Defense
 ### Fielding
@@ -106,18 +112,15 @@ par(fig=c(0.5,1,0,0.3), new=TRUE)
 boxplot(moneyball$TEAM_BATTING_3B, horizontal=TRUE, width=1, col="seagreen")
 par(mfrow=c(1,1))
 
-# Calcualte singles (hits minus doubles, triples, homeruns)
-Singles <- moneyball$TEAM_BATTING_H-moneyball$TEAM_BATTING_2B-moneyball$TEAM_BATTING_3B-moneyball$TEAM_BATTING_HR
-
 par(mfrow=c(2,2), mai=c(0.5,0.5,0.5,0.2))
 par(fig=c(0,0.5,0.25,1))
 hist(moneyball$TEAM_BATTING_H, main="Total Hits", breaks=30, col="seagreen")
 par(fig=c(0.5,1,0.25,1), new=TRUE)
-hist(Singles, main="Singles", breaks=30, col="seagreen")
+hist(moneyball$TEAM_BATTING_1B, main="Singles", breaks=30, col="seagreen")
 par(fig=c(0,0.5,0,0.3), new=TRUE)
 boxplot(moneyball$TEAM_BATTING_H, horizontal=TRUE, width=1, col="seagreen")
 par(fig=c(0.5,1,0,0.3), new=TRUE)
-boxplot(Singles, horizontal=TRUE, width=1, col="seagreen")
+boxplot(moneyball$TEAM_BATTING_1B, horizontal=TRUE, width=1, col="seagreen")
 par(mfrow=c(1,1))
 
 ### Correlation matrix
@@ -135,6 +138,15 @@ chart.Correlation(moneyball[,c(2,13:17)])
 
 ##################################################
 ### Preparation and transformations
+### Review NA Values by Columns
+sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100
+sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100 > 5
+#************ Will definitely want to remove TEAM_BATTING_HBP from analysis
+
+### Review NA Values by Rows
+NAobservations <- rowSums(is.na(moneyball[3:17]))
+hist(NAobservations, breaks=c(0,1,2,3,4,5), right=FALSE)
+
 ### Recoding NAs to zero (baseline)
 moneyballzero <- moneyball
 moneyballzero$TEAM_BATTING_SO[is.na(moneyballzero$TEAM_BATTING_SO)==TRUE] <- 0
@@ -176,10 +188,9 @@ moneyballmedian$TEAM_FIELDING_DP[is.na(moneyballmedian$TEAM_FIELDING_DP)==TRUE] 
 corrplot(cor(moneyballmedian[2:17]), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
 
+
+
 ### Transformation of Predictor Variables
-
-
-### Create new fields
 
 
 ##################################################
@@ -194,6 +205,20 @@ fullmodelzero <- lm(TARGET_WINS ~ TEAM_BATTING_H+TEAM_BATTING_2B+TEAM_BATTING_3B
                   TEAM_PITCHING_H+TEAM_PITCHING_HR+TEAM_PITCHING_BB+TEAM_PITCHING_SO+
                   TEAM_FIELDING_E+TEAM_FIELDING_DP, data=moneyballzero)
 
+### Forward Selection
+
+### Backward Selection
+
+### Stepwise
+
+### Goodness of Fit Tests
+
+### Outliers and Leverage Points
+
 ##################################################
 ### Model selection
+
+### AIC, BIC, MAE, MAPE
+
+### Cross Validation (confidence intervals, predition intervals)
 
