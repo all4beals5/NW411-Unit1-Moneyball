@@ -1,10 +1,10 @@
 ##################################################
-### Unit 1 Assignment – Moneyball
+### Unit 1 Assignment - Moneyball
 ### MSDS 411-DL-56
 ### Brandi Beals
 
 ##################################################
-### Install packages
+### Load packages
 library(corrplot)
 library(PerformanceAnalytics)
 library(mice)
@@ -148,16 +148,17 @@ chart.Correlation(moneyball[2:21])
 ##################################################
 ### Preparation and transformations
 ### Review NA Values by Rows
-NAobservations <- rowSums(is.na(moneyball[3:21]))
-hist(NAobservations, breaks=c(0,1,2,3,4,5,6,7,8,9,10), right=FALSE)
+NAobservations <- rowSums(is.na(moneyball[3:21])) # count columns with NA
+hist(NAobservations/19, right=FALSE) # is percent over 0.5?
 
 ### Review NA Values by Columns
-sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100
-sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100 > 5
+sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100 # calculate percent of NA in a column
+sapply(lapply(moneyball, is.na), sum)/nrow(moneyball)*100 > 5 # is it over 5%?
 
 ### Breakdown of missing values
 md.pattern(moneyball) # https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
 
+### Create indicator variables for NA values
 moneyball$TEAM_BATTING_SO_IMP <- ifelse(is.na(moneyball$TEAM_BATTING_SO), 1, 0)
 moneyball$TEAM_BASERUN_SB_IMP <- ifelse(is.na(moneyball$TEAM_BASERUN_SB), 1, 0)
 moneyball$TEAM_BASERUN_CS_IMP <- ifelse(is.na(moneyball$TEAM_BASERUN_CS), 1, 0)
@@ -212,42 +213,44 @@ stripplot(miceimputationstemp)
 
 ### Transformation of Predictor Variables
 ### Standardization (X-mean)/standard deviation
-moneyballstandard <- moneyball
-mean(moneyball$TEAM_FIELDING_E)
-sd(moneyball$TEAM_FIELDING_E)
+moneyballstandard <- moneyballmean
+mean(moneyballmean$TEAM_FIELDING_E)
+sd(moneyballmean$TEAM_FIELDING_E)
 moneyballstandard$TEAM_FIELDING_E <- (moneyballstandard$TEAM_FIELDING_E-246.4807)/227.771
-mean(moneyball$TEAM_PITCHING_H)
-sd(moneyball$TEAM_PITCHING_H)
+mean(moneyballmean$TEAM_PITCHING_H)
+sd(moneyballmean$TEAM_PITCHING_H)
 moneyballstandard$TEAM_PITCHING_H <- (moneyballstandard$TEAM_PITCHING_H-1779.21)/1406.843
 mean(moneyballmean$TEAM_PITCHING_SO)
 sd(moneyballmean$TEAM_PITCHING_SO)
 moneyballstandard$TEAM_PITCHING_SO <- (moneyballstandard$TEAM_PITCHING_SO-817.7305)/540.544
-mean(moneyball$TEAM_PITCHING_BB)
-sd(moneyball$TEAM_PITCHING_BB)
+mean(moneyballmean$TEAM_PITCHING_BB)
+sd(moneyballmean$TEAM_PITCHING_BB)
 moneyballstandard$TEAM_PITCHING_BB <- (moneyballstandard$TEAM_PITCHING_BB-553.0079)/166.3574
 
 ### Log transformation
-moneyballlog <- moneyball
-moneyballlog$TEAM_FIELDING_E <- log(moneyball$TEAM_FIELDING_E)
-moneyballlog$TEAM_PITCHING_H <- log(moneyball$TEAM_PITCHING_H)
-moneyballlog$TEAM_PITCHING_SO <- log(moneyball$TEAM_PITCHING_SO)
-moneyballlog$TEAM_PITCHING_BB <- log(moneyball$TEAM_PITCHING_BB)
+moneyballlog <- moneyballmean
+moneyballlog$TEAM_FIELDING_E <- log(moneyballlog$TEAM_FIELDING_E)
+moneyballlog$TEAM_PITCHING_H <- log(moneyballlog$TEAM_PITCHING_H)
+moneyballlog$TEAM_PITCHING_SO[moneyballlog$TEAM_PITCHING_SO==0] <- 1
+moneyballlog$TEAM_PITCHING_SO <- log(moneyballlog$TEAM_PITCHING_SO)
+moneyballlog$TEAM_PITCHING_BB[moneyballlog$TEAM_PITCHING_BB==0] <- 1
+moneyballlog$TEAM_PITCHING_BB <- log(moneyballlog$TEAM_PITCHING_BB)
 
 ### Determine trimming percentile values
-quantile(moneyball$TEAM_FIELDING_E, probs=c(0.01,0.05,0.95,0.99))
-quantile(moneyball$TEAM_PITCHING_H, probs=c(0.01,0.05,0.95,0.99))
+quantile(moneyballmean$TEAM_FIELDING_E, probs=c(0.01,0.05,0.95,0.99))
+quantile(moneyballmean$TEAM_PITCHING_H, probs=c(0.01,0.05,0.95,0.99))
 quantile(moneyballmean$TEAM_PITCHING_SO, probs=c(0.01,0.05,0.95,0.99))
-quantile(moneyball$TEAM_PITCHING_BB, probs=c(0.01,0.05,0.95,0.99))
+quantile(moneyballmean$TEAM_PITCHING_BB, probs=c(0.01,0.05,0.95,0.99))
 
 ### Trim data by 5th & 95th percentile
-moneyball95trim <- moneyball
+moneyball95trim <- moneyballmean
 moneyball95trim$TEAM_FIELDING_E[moneyball95trim$TEAM_FIELDING_E>716] <- 716
 moneyball95trim$TEAM_PITCHING_H[moneyball95trim$TEAM_PITCHING_H>2563] <- 2563
 moneyball95trim$TEAM_PITCHING_SO[moneyball95trim$TEAM_PITCHING_SO>1168.25] <- 1168.25
 moneyball95trim$TEAM_PITCHING_BB[moneyball95trim$TEAM_PITCHING_BB>757] <- 757
 
 ### Trim data by 1st & 99th percentile
-moneyball99trim <- moneyball
+moneyball99trim <- moneyballmean
 moneyball99trim$TEAM_FIELDING_E[moneyball95trim$TEAM_FIELDING_E>1228] <- 1228
 moneyball99trim$TEAM_PITCHING_H[moneyball95trim$TEAM_PITCHING_H>7054] <- 7054
 moneyball99trim$TEAM_PITCHING_SO[moneyball95trim$TEAM_PITCHING_SO>1461.75] <- 1461.75
@@ -259,35 +262,41 @@ hist(moneyballstandard$TEAM_FIELDING_E, breaks=30)
 hist(moneyballlog$TEAM_FIELDING_E, breaks=30)
 hist(moneyball95trim$TEAM_FIELDING_E, breaks=30)
 hist(moneyball99trim$TEAM_FIELDING_E, breaks=30)
-par(mfrow=c(1,1)) # log or 95th percentile
+par(mfrow=c(1,1)) # log or 95th percentile seems best
 
 par(mfrow=c(2,2))
 hist(moneyballstandard$TEAM_PITCHING_H, breaks=30)
 hist(moneyballlog$TEAM_PITCHING_H, breaks=30)
 hist(moneyball95trim$TEAM_PITCHING_H, breaks=30)
 hist(moneyball99trim$TEAM_PITCHING_H, breaks=30)
-par(mfrow=c(1,1)) # 95th percentile trim
+par(mfrow=c(1,1)) # 95th percentile trim seems best
 
 par(mfrow=c(2,2))
 hist(moneyballstandard$TEAM_PITCHING_SO, breaks=30)
 hist(moneyballlog$TEAM_PITCHING_SO, breaks=30)
 hist(moneyball95trim$TEAM_PITCHING_SO, breaks=30)
 hist(moneyball99trim$TEAM_PITCHING_SO, breaks=30)
-par(mfrow=c(1,1)) # log or 95th percentile
+par(mfrow=c(1,1)) # log or 95th percentile seems best
 
 par(mfrow=c(2,2))
 hist(moneyballstandard$TEAM_PITCHING_BB, breaks=30)
 hist(moneyballlog$TEAM_PITCHING_BB, breaks=30)
 hist(moneyball95trim$TEAM_PITCHING_BB, breaks=30)
 hist(moneyball99trim$TEAM_PITCHING_BB, breaks=30)
-par(mfrow=c(1,1)) # log or 95th percentile
+par(mfrow=c(1,1)) # log or 95th percentile seems best
+
+chart.Correlation(moneyball95trim[2:21])
 
 ##################################################
 ### Model creation
-fullmodel <- lm(TARGET_WINS ~ TEAM_BATTING_H+TEAM_BATTING_2B+TEAM_BATTING_3B+TEAM_BATTING_HR+
-     TEAM_BATTING_BB+TEAM_BATTING_HBP+TEAM_BATTING_SO+TEAM_BASERUN_SB+TEAM_BASERUN_CS+
-     TEAM_PITCHING_H+TEAM_PITCHING_HR+TEAM_PITCHING_BB+TEAM_PITCHING_SO+
-     TEAM_FIELDING_E+TEAM_FIELDING_DP, data=moneyball)
+fullmodel <- lm(TARGET_WINS ~ ., data=moneyball)
+meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean)
+medianmodel <- lm(TARGET_WINS ~ ., data=moneyballmedian)
+micemodel <- lm(TARGET_WINS ~ ., data=moneyballmice)
+standardmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard)
+logmodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
+trim95model <- lm(TARGET_WINS ~ ., data=moneyball95trim)
+trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
 
 ### Forward Selection
 
