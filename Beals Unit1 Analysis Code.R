@@ -8,6 +8,8 @@
 library(corrplot)
 library(PerformanceAnalytics)
 library(mice)
+library(car)
+library(usdm)
 
 ##################################################
 ### Set working directory & read data
@@ -289,22 +291,95 @@ chart.Correlation(moneyball95trim[2:21])
 
 ##################################################
 ### Model creation
+
+### Multicollinearity checks
+vifstep(moneyball, th=10)
+detach("package:usdm",unload=TRUE)
+
+### Model 1
 fullmodel <- lm(TARGET_WINS ~ ., data=moneyball)
+summary(fullmodel)
+fullmodel <- lm(TARGET_WINS ~ ., data=moneyball[c(2,4,5,6,8,10,11,14,16,17)])
+summary(fullmodel)
+vif(fullmodel)
+
+par(mfrow=c(2,2))
+plot(fullmodel)
+par(mfrow=c(1,1))
+
+### Model 1
 meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean)
+summary(meanmodel)
+meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean[c(2,4,5,6,8,10,11,14,16,17)])
+summary(meanmodel)
+vif(meanmodel)
+
+par(mfrow=c(2,2))
+plot(meanmodel)
+par(mfrow=c(1,1))
+
+### Model 2
 medianmodel <- lm(TARGET_WINS ~ ., data=moneyballmedian)
+summary(medianmodel)
+vif(medianmodel)
+
+par(mfrow=c(2,2))
+plot(medianmodel)
+par(mfrow=c(1,1))
+
+### Model 3
 micemodel <- lm(TARGET_WINS ~ ., data=moneyballmice)
+summary(micemodel)
+vif(micemodel)
+
+par(mfrow=c(2,2))
+plot(micemodel)
+par(mfrow=c(1,1))
+
+### Model 4
 standardmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard)
+summary(standardmodel)
+vif(standardmodel)
+
+par(mfrow=c(2,2))
+plot(standardmodel)
+par(mfrow=c(1,1))
+
+### Model 5
 logmodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
+summary(logmodel)
+vif(logmodel)
+
+par(mfrow=c(2,2))
+plot(logmodel)
+par(mfrow=c(1,1))
+
+### Model 6
 trim95model <- lm(TARGET_WINS ~ ., data=moneyball95trim)
+summary(trim95model)
+vif(trim95model)
+
+par(mfrow=c(2,2))
+plot(trim95model)
+par(mfrow=c(1,1))
+
+### Model 7
 trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
+summary(trim99model)
+vif(trim99model)
+
+par(mfrow=c(2,2))
+plot(trim99model)
+par(mfrow=c(1,1))
 
 ### Forward Selection
 
 ### Backward Selection
 
 ### Stepwise
-
-### Goodness of Fit Tests
+stepwise <- stepAIC(stepwisemodel, direction = "both")
+summary(stepwise)
+vif(stepwise)
 
 ### Outliers and Leverage Points
 
@@ -312,6 +387,12 @@ trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
 ### Model selection
 
 ### AIC, BIC, MAE, MAPE
+AIC(stepwisemodel)
+AIC(subset)
+AIC(model3)
+mse(stepwisemodel)
+mse(subset)
+mse(model3)
 
 ### Cross Validation (confidence intervals, predition intervals)
 
