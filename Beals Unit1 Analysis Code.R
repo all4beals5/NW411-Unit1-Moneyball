@@ -10,6 +10,8 @@ library(PerformanceAnalytics)
 library(mice)
 library(car)
 library(usdm)
+library(MASS)
+library(stats4)
 
 ##################################################
 ### Set working directory & read data
@@ -307,10 +309,10 @@ par(mfrow=c(2,2))
 plot(fullmodel)
 par(mfrow=c(1,1))
 
-### Model 1
+### Model 2
 meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean)
 summary(meanmodel)
-meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean[c(2,4,5,6,8,10,11,14,16,17)])
+meanmodel <- lm(TARGET_WINS ~ ., data=moneyballmean[c(2,3,4,5,6,7,8,9,12,16,17,22,23,25,27)])
 summary(meanmodel)
 vif(meanmodel)
 
@@ -318,8 +320,10 @@ par(mfrow=c(2,2))
 plot(meanmodel)
 par(mfrow=c(1,1))
 
-### Model 2
+### Model 3
 medianmodel <- lm(TARGET_WINS ~ ., data=moneyballmedian)
+summary(medianmodel)
+medianmodel <- lm(TARGET_WINS ~ ., data=moneyballmedian[c(2,3,4,5,6,7,8,9,10,11,14,16,17,22,23,25,27)])
 summary(medianmodel)
 vif(medianmodel)
 
@@ -327,7 +331,7 @@ par(mfrow=c(2,2))
 plot(medianmodel)
 par(mfrow=c(1,1))
 
-### Model 3
+### Model 4
 micemodel <- lm(TARGET_WINS ~ ., data=moneyballmice)
 summary(micemodel)
 vif(micemodel)
@@ -336,7 +340,7 @@ par(mfrow=c(2,2))
 plot(micemodel)
 par(mfrow=c(1,1))
 
-### Model 4
+### Model 5
 standardmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard)
 summary(standardmodel)
 vif(standardmodel)
@@ -345,7 +349,7 @@ par(mfrow=c(2,2))
 plot(standardmodel)
 par(mfrow=c(1,1))
 
-### Model 5
+### Model 6
 logmodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
 summary(logmodel)
 vif(logmodel)
@@ -354,7 +358,7 @@ par(mfrow=c(2,2))
 plot(logmodel)
 par(mfrow=c(1,1))
 
-### Model 6
+### Model 7
 trim95model <- lm(TARGET_WINS ~ ., data=moneyball95trim)
 summary(trim95model)
 vif(trim95model)
@@ -363,7 +367,7 @@ par(mfrow=c(2,2))
 plot(trim95model)
 par(mfrow=c(1,1))
 
-### Model 7
+### Model 8
 trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
 summary(trim99model)
 vif(trim99model)
@@ -372,27 +376,27 @@ par(mfrow=c(2,2))
 plot(trim99model)
 par(mfrow=c(1,1))
 
-### Forward Selection
-
-### Backward Selection
-
-### Stepwise
+### Stepwise model selection
+stepwisemodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
 stepwise <- stepAIC(stepwisemodel, direction = "both")
 summary(stepwise)
 vif(stepwise)
+
+par(mfrow=c(2,2))
+plot(stepwise)
+par(mfrow=c(1,1))
 
 ### Outliers and Leverage Points
 
 ##################################################
 ### Model selection
 
-### AIC, BIC, MAE, MAPE
-AIC(stepwisemodel)
-AIC(subset)
-AIC(model3)
-mse(stepwisemodel)
-mse(subset)
-mse(model3)
+### R-Squared, AIC, BIC, MAE, MSE
+summary(stepwise)$r.squared
+AIC(stepwise)
+BIC(stepwise)
+mean(abs(summary(stepwise)$residuals))
+mean(summary(stepwise)$residuals^2)
 
-### Cross Validation (confidence intervals, predition intervals)
+### Validation (confidence intervals, predition intervals)
 
