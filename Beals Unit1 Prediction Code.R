@@ -5,14 +5,12 @@
 
 ##################################################
 ### Load packages
-library(corrplot)
-library(PerformanceAnalytics)
-library(mice)
-library(car)
+library(openxlsx)
 
 ##################################################
 ### Set working directory & read data
-setwd("C:/Users/Brara/Dropbox/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
+# home setwd("C:/Users/Brara/Dropbox/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
+setwd("C:/Users/bbeals/Dropbox (Personal)/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
 moneyball=read.csv("moneyball_test.csv",header=T)
 
 ### Create new fields
@@ -33,65 +31,46 @@ moneyball$TEAM_BASERUN_CS_RATIO_IMP <- ifelse(is.na(moneyball$TEAM_BASERUN_CS_RA
 moneyball$TEAM_BATTING_WALK_IMP <- ifelse(is.na(moneyball$TEAM_BATTING_WALK), 1, 0)
 
 ### Impute with mean
-moneyballmean <- moneyball
-
-moneyballmean$TEAM_BATTING_SO[is.na(moneyballmean$TEAM_BATTING_SO)==TRUE] <- mean(moneyballmean$TEAM_BATTING_SO, na.rm = TRUE)
-moneyballmean$TEAM_BASERUN_SB[is.na(moneyballmean$TEAM_BASERUN_SB)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_SB, na.rm = TRUE)
-moneyballmean$TEAM_BASERUN_CS[is.na(moneyballmean$TEAM_BASERUN_CS)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_CS, na.rm = TRUE)
-moneyballmean$TEAM_BATTING_HBP[is.na(moneyballmean$TEAM_BATTING_HBP)==TRUE] <- mean(moneyballmean$TEAM_BATTING_HBP, na.rm = TRUE)
-moneyballmean$TEAM_PITCHING_SO[is.na(moneyballmean$TEAM_PITCHING_SO)==TRUE] <- mean(moneyballmean$TEAM_PITCHING_SO, na.rm = TRUE)
-moneyballmean$TEAM_FIELDING_DP[is.na(moneyballmean$TEAM_FIELDING_DP)==TRUE] <- mean(moneyballmean$TEAM_FIELDING_DP, na.rm = TRUE)
-moneyballmean$TEAM_BASERUN_SB_RATIO[is.na(moneyballmean$TEAM_BASERUN_SB_RATIO)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_SB_RATIO, na.rm = TRUE)
-moneyballmean$TEAM_BASERUN_CS_RATIO[is.na(moneyballmean$TEAM_BASERUN_CS_RATIO)==TRUE] <- mean(moneyballmean$TEAM_BASERUN_CS_RATIO, na.rm = TRUE)
-moneyballmean$TEAM_BATTING_WALK[is.na(moneyballmean$TEAM_BATTING_WALK)==TRUE] <- mean(moneyballmean$TEAM_BATTING_WALK, na.rm = TRUE)
+moneyball$TEAM_BATTING_SO[is.na(moneyball$TEAM_BATTING_SO)==TRUE] <- 735.6053
+moneyball$TEAM_BASERUN_SB[is.na(moneyball$TEAM_BASERUN_SB)==TRUE] <- 124.7618
+moneyball$TEAM_BASERUN_CS[is.na(moneyball$TEAM_BASERUN_CS)==TRUE] <- 52.80386
+moneyball$TEAM_BATTING_HBP[is.na(moneyball$TEAM_BATTING_HBP)==TRUE] <- 59.35602
+moneyball$TEAM_PITCHING_SO[is.na(moneyball$TEAM_PITCHING_SO)==TRUE] <- 817.7305
+moneyball$TEAM_FIELDING_DP[is.na(moneyball$TEAM_FIELDING_DP)==TRUE] <- 146.3879
+moneyball$TEAM_BASERUN_SB_RATIO[is.na(moneyball$TEAM_BASERUN_SB_RATIO)==TRUE] <- 0.6327151
+moneyball$TEAM_BASERUN_CS_RATIO[is.na(moneyball$TEAM_BASERUN_CS_RATIO)==TRUE] <- 0.3672849
+moneyball$TEAM_BATTING_WALK[is.na(moneyball$TEAM_BATTING_WALK)==TRUE] <- 602.6754
 
 ### Log transformation
-moneyballlog <- moneyballmean
-moneyballlog$TEAM_FIELDING_E <- log(moneyballlog$TEAM_FIELDING_E)
-moneyballlog$TEAM_PITCHING_H <- log(moneyballlog$TEAM_PITCHING_H)
-moneyballlog$TEAM_PITCHING_SO[moneyballlog$TEAM_PITCHING_SO==0] <- 1
-moneyballlog$TEAM_PITCHING_SO <- log(moneyballlog$TEAM_PITCHING_SO)
-moneyballlog$TEAM_PITCHING_BB[moneyballlog$TEAM_PITCHING_BB==0] <- 1
-moneyballlog$TEAM_PITCHING_BB <- log(moneyballlog$TEAM_PITCHING_BB)
+moneyball$TEAM_FIELDING_E <- log(moneyball$TEAM_FIELDING_E)
+moneyball$TEAM_PITCHING_H <- log(moneyball$TEAM_PITCHING_H)
+moneyball$TEAM_PITCHING_SO[moneyball$TEAM_PITCHING_SO==0] <- 1
+moneyball$TEAM_PITCHING_SO <- log(moneyball$TEAM_PITCHING_SO)
+moneyball$TEAM_PITCHING_BB[moneyball$TEAM_PITCHING_BB==0] <- 1
+moneyball$TEAM_PITCHING_BB <- log(moneyball$TEAM_PITCHING_BB)
 
+### Model scoring
+moneyball$P_TARGET_WINS <- 206.09627163 + 
+  0.04180158 * moneyball$TEAM_BATTING_H -
+  0.03462849 * moneyball$TEAM_BATTING_2B + 
+  0.17849720 * moneyball$TEAM_BATTING_3B +
+  0.07855182 * moneyball$TEAM_BATTING_HR +
+  0.08272586 * moneyball$TEAM_BASERUN_SB -
+  0.04521347 * moneyball$TEAM_BASERUN_CS -
+  12.64165775 * moneyball$TEAM_PITCHING_H +
+  15.23820204 * moneyball$TEAM_PITCHING_BB -
+  10.31248690 * moneyball$TEAM_PITCHING_SO -
+  26.59985393 * moneyball$TEAM_FIELDING_E -
+  0.10039003 * moneyball$TEAM_FIELDING_DP -
+  21.88531997 * moneyball$TEAM_BASERUN_SB_RATIO +
+  0.03424967 * moneyball$TEAM_BATTING_WALK +
+  7.74191090 * moneyball$TEAM_BATTING_SO_IMP +
+  33.48713640 * moneyball$TEAM_BASERUN_SB_IMP +
+  5.31395778 * moneyball$TEAM_BASERUN_CS_IMP +
+  5.66188510 * moneyball$TEAM_BATTING_HBP_IMP
 
-
-
-
-# Fixing na's
-moneyball_test$TEAM_BATTING_1B <- moneyball_test$TEAM_BATTING_H - moneyball_test$TEAM_BATTING_HR -
-  moneyball_test$TEAM_BATTING_3B -moneyball_test$TEAM_BATTING_2B
-moneyball_test$TEAM_BATTING_SO[is.na(moneyball_test$TEAM_BATTING_SO)] = mean(moneyball_test$TEAM_BATTING_SO, na.rm = TRUE)
-moneyball_test$TEAM_BATTING_HBP[is.na(moneyball_test$TEAM_BATTING_HBP)] = mean(moneyball_test$TEAM_BATTING_HBP, na.rm = TRUE)
-moneyball_test$TEAM_BASERUN_SB[is.na(moneyball_test$TEAM_BASERUN_SB)] = mean(moneyball_test$TEAM_BASERUN_SB, na.rm = TRUE)
-moneyball_test$TEAM_BASERUN_CS[is.na(moneyball_test$TEAM_BASERUN_CS)] = mean(moneyball_test$TEAM_BASERUN_CS, na.rm = TRUE)
-moneyball_test$TEAM_FIELDING_DP[is.na(moneyball_test$TEAM_FIELDING_DP)] = mean(moneyball_test$TEAM_FIELDING_DP, na.rm = TRUE)
-moneyball_test$TEAM_PITCHING_SO[is.na(moneyball_test$TEAM_PITCHING_SO)] = mean(moneyball_test$TEAM_PITCHING_SO, na.rm = TRUE)
-moneyball_test$TEAM_BASERUN_CS[moneyball_test$TEAM_BASERUN_CS < 1] = 1
-moneyball_test$SB_PCT <- moneyball_test$TEAM_BASERUN_SB/(1.0*moneyball_test$TEAM_BASERUN_SB+moneyball_test$TEAM_BASERUN_CS)
-moneyball_test$SB_PCT[is.na(moneyball_test$SB_PCT)] = mean(moneyball_test$SB_PCT)
-moneyball_test$log_TEAM_BASERUN_CS <- log(moneyball_test$TEAM_BASERUN_CS)
-
-
-# Stand Alone Scoring
-moneyball_test$P_TARGET_WINS <- 68.453769 + 0.036145 * moneyball_test$TEAM_BATTING_1B -
-  0.011591* moneyball_test$TEAM_BATTING_2B + 
-  0.203495* moneyball_test$TEAM_BATTING_3B +
-  0.618848* moneyball_test$TEAM_BATTING_HR +
-  0.154710* moneyball_test$TEAM_BATTING_BB -
-  0.166438* moneyball_test$TEAM_BATTING_SO + 
-  0.100967* moneyball_test$TEAM_BASERUN_SB -
-  0.487091* moneyball_test$TEAM_PITCHING_HR - 
-  0.115184* moneyball_test$TEAM_PITCHING_BB + 
-  0.142082* moneyball_test$TEAM_PITCHING_SO -
-  0.110246* moneyball_test$TEAM_FIELDING_E - 
-  0.111298* moneyball_test$TEAM_FIELDING_DP -
-  7.868975* moneyball_test$SB_PCT -
-  4.986598* moneyball_test$log_TEAM_BASERUN_CS
-
-#subset of data set for the deliverable "Scored data file"
-prediction <- moneyball_test[c("INDEX","P_TARGET_WINS")]
+### Subset output
+prediction <- moneyball[c("INDEX","P_TARGET_WINS")]
 
 ### Prediction output 
-write.xlsx(prediction, file = "write.xlsx", sheetName = "Predictions",
-           col.names = TRUE)
+write.xlsx(prediction, file = "Brandi Beals Unit1 Predictions.xlsx", sheetName = "Predictions", col.names = TRUE)

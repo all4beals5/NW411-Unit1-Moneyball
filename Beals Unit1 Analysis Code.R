@@ -15,7 +15,8 @@ library(stats4)
 
 ##################################################
 ### Set working directory & read data
-setwd("C:/Users/Brara/Dropbox/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
+# home setwd("C:/Users/Brara/Dropbox/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
+setwd("C:/Users/bbeals/Dropbox (Personal)/Masters in Predictive Analytics/411-DL-56/W-unit 1 Weeks 1 to 3/Unit 1 - Moneyball/4 Homework")
 moneyball=read.csv("moneyball.csv",header=T)
 
 ##################################################
@@ -208,7 +209,7 @@ corrplot(cor(moneyballmedian[2:21]), method="color", type="upper", tl.col="black
 ### Impute with MICE
 miceimputationstemp <- mice(moneyball, m=5, maxit=50, method="pmm", seed=500)
 summary(miceimputationstemp)
-moneyballmice <- complete(miceimputationstemp,5)
+moneyballmice <- complete(miceimputationstemp,1)
 summary(moneyballmice)
 corrplot(cor(moneyballmice[2:21]), method="color", type="upper", tl.col="black", tl.cex=.7, 
          addCoef.col="black", number.cex=.8)
@@ -301,6 +302,8 @@ detach("package:usdm",unload=TRUE)
 ### Model 1
 fullmodel <- lm(TARGET_WINS ~ ., data=moneyball)
 summary(fullmodel)
+fullmodel <- lm(TARGET_WINS ~ ., data=moneyball[-c(11,21)])
+summary(fullmodel)
 fullmodel <- lm(TARGET_WINS ~ ., data=moneyball[c(2,4,5,6,8,10,11,14,16,17)])
 summary(fullmodel)
 vif(fullmodel)
@@ -334,6 +337,8 @@ par(mfrow=c(1,1))
 ### Model 4
 micemodel <- lm(TARGET_WINS ~ ., data=moneyballmice)
 summary(micemodel)
+micemodel <- lm(TARGET_WINS ~ ., data=moneyballmice[c(2,3,4,5,6,10,12,16,17,25,27)])
+summary(micemodel)
 vif(micemodel)
 
 par(mfrow=c(2,2))
@@ -342,6 +347,8 @@ par(mfrow=c(1,1))
 
 ### Model 5
 standardmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard)
+summary(standardmodel)
+standardmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard[c(2,3,4,5,6,7,8,9,12,16,17,21,22,23,25,27)])
 summary(standardmodel)
 vif(standardmodel)
 
@@ -352,6 +359,8 @@ par(mfrow=c(1,1))
 ### Model 6
 logmodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
 summary(logmodel)
+logmodel <- lm(TARGET_WINS ~ ., data=moneyballlog[c(2,3,4,5,6,7,8,9,16,17,19,21,22,23,25,27)])
+summary(logmodel)
 vif(logmodel)
 
 par(mfrow=c(2,2))
@@ -361,7 +370,14 @@ par(mfrow=c(1,1))
 ### Model 7
 trim95model <- lm(TARGET_WINS ~ ., data=moneyball95trim)
 summary(trim95model)
+trim95model <- lm(TARGET_WINS ~ ., data=moneyball95trim[c(2,3,4,5,7,9,10,12,13,15,16,17,19,21,22,23,24,25,27)])
+summary(trim95model)
 vif(trim95model)
+
+# detach("package:stats4",unload=TRUE)
+# library(usdm)
+# vifstep(moneyball95trim[c(2,3,4,5,7,8,9,10,12,13,15,16,17,19,21,22,23,24,25,27,28)], th=10)
+# detach("package:usdm",unload=TRUE)
 
 par(mfrow=c(2,2))
 plot(trim95model)
@@ -370,6 +386,8 @@ par(mfrow=c(1,1))
 ### Model 8
 trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
 summary(trim99model)
+trim99model <- lm(TARGET_WINS ~ ., data=moneyball99trim[c(2,3,4,5,6,7,8,9,12,16,17,21,22,23,25,27)])
+summary(trim99model)
 vif(trim99model)
 
 par(mfrow=c(2,2))
@@ -377,26 +395,272 @@ plot(trim99model)
 par(mfrow=c(1,1))
 
 ### Stepwise model selection
-stepwisemodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
-stepwise <- stepAIC(stepwisemodel, direction = "both")
-summary(stepwise)
-vif(stepwise)
+### Model 9
+stepwiselogmodel <- lm(TARGET_WINS ~ ., data=moneyballlog)
+stepwiselog <- stepAIC(stepwiselogmodel, direction = "both")
+summary(stepwiselog)
+vif(stepwiselog)
 
 par(mfrow=c(2,2))
-plot(stepwise)
+plot(stepwiselog)
 par(mfrow=c(1,1))
 
-### Outliers and Leverage Points
+### Model 10
+stepwisestdmodel <- lm(TARGET_WINS ~ ., data=moneyballstandard)
+stepwisestd <- stepAIC(stepwisestdmodel, direction = "both")
+summary(stepwisestd)
+vif(stepwisestd)
+
+par(mfrow=c(2,2))
+plot(stepwisestd)
+par(mfrow=c(1,1))
+
+### Model 11
+stepwise95model <- lm(TARGET_WINS ~ ., data=moneyball95trim[-c(15)]) #remove pitching SO due to high VIF
+stepwise95 <- stepAIC(stepwise95model, direction = "both")
+summary(stepwise95)
+vif(stepwise95)
+
+par(mfrow=c(2,2))
+plot(stepwise95)
+par(mfrow=c(1,1))
+
+### Model 12
+stepwise99model <- lm(TARGET_WINS ~ ., data=moneyball99trim)
+stepwise99 <- stepAIC(stepwise99model, direction = "both")
+summary(stepwise99)
+vif(stepwise99)
+
+par(mfrow=c(2,2))
+plot(stepwise99)
+par(mfrow=c(1,1))
+
+### R-Squared, AIC, BIC, MAE, MSE
+modelrsquared <- c(summary(fullmodel)$r.squared,
+                   summary(meanmodel)$r.squared,
+                   summary(medianmodel)$r.squared,
+                   summary(micemodel)$r.squared,
+                   summary(standardmodel)$r.squared,
+                   summary(logmodel)$r.squared,
+                   summary(trim95model)$r.squared,
+                   summary(trim99model)$r.squared,
+                   summary(stepwiselog)$r.squared,
+                   summary(stepwisestd)$r.squared,
+                   summary(stepwise95)$r.squared,
+                   summary(stepwise99)$r.squared
+)
+modelaic <- c(AIC(fullmodel),
+              AIC(meanmodel),
+              AIC(medianmodel),
+              AIC(micemodel),
+              AIC(standardmodel),
+              AIC(logmodel),
+              AIC(trim95model),
+              AIC(trim99model),
+              AIC(stepwiselog),
+              AIC(stepwisestd),
+              AIC(stepwise95),
+              AIC(stepwise99)
+)
+modelbic <- c(BIC(fullmodel),
+              BIC(meanmodel),
+              BIC(medianmodel),
+              BIC(micemodel),
+              BIC(standardmodel),
+              BIC(logmodel),
+              BIC(trim95model),
+              BIC(trim99model),
+              BIC(stepwiselog),
+              BIC(stepwisestd),
+              BIC(stepwise95),
+              BIC(stepwise99)
+)
+modelmae <- c(mean(abs(summary(fullmodel)$residuals)),
+              mean(abs(summary(meanmodel)$residuals)),
+              mean(abs(summary(medianmodel)$residuals)),
+              mean(abs(summary(micemodel)$residuals)),
+              mean(abs(summary(standardmodel)$residuals)),
+              mean(abs(summary(logmodel)$residuals)),
+              mean(abs(summary(trim95model)$residuals)),
+              mean(abs(summary(trim99model)$residuals)),
+              mean(abs(summary(stepwiselog)$residuals)),
+              mean(abs(summary(stepwisestd)$residuals)),
+              mean(abs(summary(stepwise95)$residuals)),
+              mean(abs(summary(stepwise99)$residuals))
+)
+modelmse <- c(mean(summary(fullmodel)$residuals^2),
+              mean(summary(meanmodel)$residuals^2),
+              mean(summary(medianmodel)$residuals^2),
+              mean(summary(micemodel)$residuals^2),
+              mean(summary(standardmodel)$residuals^2),
+              mean(summary(logmodel)$residuals^2),
+              mean(summary(trim95model)$residuals^2),
+              mean(summary(trim99model)$residuals^2),
+              mean(summary(stepwiselog)$residuals^2),
+              mean(summary(stepwisestd)$residuals^2),
+              mean(summary(stepwise95)$residuals^2),
+              mean(summary(stepwise99)$residuals^2)
+)
+modelmetrics <- data.frame(modelrsquared, modelaic, modelbic, modelmae, modelmse)
+modelmetrics # models 1, 9, 6, and 11 are best
+
+### Limit data
+moneyball2 <- subset(moneyball, TARGET_WINS >= 21 & TARGET_WINS <= 120)
+moneyball2 <- subset(moneyball2, TEAM_PITCHING_H < 2000)
+moneyballlog2 <- subset(moneyballlog, TARGET_WINS >= 21 & TARGET_WINS <= 120)
+moneyballlog2 <- subset(moneyballlog2, TEAM_PITCHING_H < 7.6)
+moneyball99trim2 <- subset(moneyball99trim, TARGET_WINS >= 21 & TARGET_WINS <= 120)
+moneyball99trim2 <- subset(moneyball99trim2, TEAM_PITCHING_H < 2000)
+moneyball95trim2 <- subset(moneyball95trim, TARGET_WINS >= 21 & TARGET_WINS <= 120)
+moneyball95trim2 <- subset(moneyball95trim2, TEAM_PITCHING_H < 2000)
+
+### Rerun best models
+### Model 1.2
+fullmodel2 <- lm(TARGET_WINS ~ ., data=moneyball2)
+summary(fullmodel2)
+fullmodel2 <- lm(TARGET_WINS ~ ., data=moneyball2[-c(11,21)])
+summary(fullmodel2)
+fullmodel2 <- lm(TARGET_WINS ~ ., data=moneyball2[c(2,4,5,6,8,10,11,14,16,17)])
+summary(fullmodel2)
+vif(fullmodel2)
+
+par(mfrow=c(2,2))
+plot(fullmodel2)
+par(mfrow=c(1,1))
+
+### Model 6.2
+logmodel2 <- lm(TARGET_WINS ~ ., data=moneyballlog2)
+summary(logmodel2)
+logmodel2 <- lm(TARGET_WINS ~ ., data=moneyballlog2[c(2,3,4,5,6,7,8,9,10,16,17,19,21,22,23,24,25,27)])
+summary(logmodel2)
+vif(logmodel2)
+
+par(mfrow=c(2,2))
+plot(logmodel2)
+par(mfrow=c(1,1))
+
+### Model 8.2
+trim99model2 <- lm(TARGET_WINS ~ ., data=moneyball99trim2)
+summary(trim99model2)
+trim99model2 <- lm(TARGET_WINS ~ ., data=moneyball99trim2[c(2,4,5,9,10,12,13,14,15,16,17,21,22,23,25,27)])
+summary(trim99model2)
+vif(trim99model2)
+
+par(mfrow=c(2,2))
+plot(trim99model2)
+par(mfrow=c(1,1))
+
+### Model 9.2
+stepwiselogmodel2 <- lm(TARGET_WINS ~ ., data=moneyballlog2[-c(7,8)]) #remove batting SO and BB due to high VIF
+stepwiselog2 <- stepAIC(stepwiselogmodel2, direction = "both")
+summary(stepwiselog2)
+vif(stepwiselog2)
+
+par(mfrow=c(2,2))
+plot(stepwiselog2)
+par(mfrow=c(1,1))
+
+### Model 11.2
+stepwise95model2 <- lm(TARGET_WINS ~ ., data=moneyball95trim2[-c(3,6,7,8,13)]) #remove batting HR and SO due to high VIF
+stepwise952 <- stepAIC(stepwise95model2, direction = "both")
+summary(stepwise952)
+vif(stepwise952)
+
+par(mfrow=c(2,2))
+plot(stepwise952)
+par(mfrow=c(1,1))
 
 ##################################################
 ### Model selection
 
 ### R-Squared, AIC, BIC, MAE, MSE
-summary(stepwise)$r.squared
-AIC(stepwise)
-BIC(stepwise)
-mean(abs(summary(stepwise)$residuals))
-mean(summary(stepwise)$residuals^2)
+modelrsquared <- c(summary(fullmodel2)$r.squared,
+                   summary(logmodel2)$r.squared,
+                   summary(trim99model2)$r.squared,
+                   summary(stepwiselog2)$r.squared,
+                   summary(stepwise952)$r.squared
+)
+modelaic <- c(AIC(fullmodel2),
+              AIC(logmodel2),
+              AIC(trim99model2),
+              AIC(stepwiselog2),
+              AIC(stepwise952)
+)
+modelbic <- c(BIC(fullmodel2),
+              BIC(logmodel2),
+              BIC(trim99model2),
+              BIC(stepwiselog2),
+              BIC(stepwise952)
+)
+modelmae <- c(mean(abs(summary(fullmodel2)$residuals)),
+              mean(abs(summary(logmodel2)$residuals)),
+              mean(abs(summary(trim99model2)$residuals)),
+              mean(abs(summary(stepwiselog2)$residuals)),
+              mean(abs(summary(stepwise952)$residuals))
+)
+modelmse <- c(mean(summary(fullmodel2)$residuals^2),
+              mean(summary(logmodel2)$residuals^2),
+              mean(summary(trim99model2)$residuals^2),
+              mean(summary(stepwiselog2)$residuals^2),
+              mean(summary(stepwise952)$residuals^2)
+)
+modelmetrics <- data.frame(modelrsquared, modelaic, modelbic, modelmae, modelmse)
+modelmetrics # models 1, 6, and 9 look good
 
-### Validation (confidence intervals, predition intervals)
+### Outliers and Leverage Points
+summary(influentialobs <- influence.measures(logmodel2))
 
+plot(dffits(logmodel2))
+dffitslog <- dffits(logmodel2)
+moneyballfinal <- cbind(moneyballlog2,dffitslog)
+
+moneyballfinal$absdf <- abs(moneyballfinal$dffitslog)
+moneyballfinal <- moneyballfinal[which(moneyballfinal$absdf < 0.004244763),] #severely limits the nubmer of observations  
+# 2*(sqrt(p+1)/(n-p-1)) = 2*(sqrt(18)/1999)
+
+outlierscooks <- cooks.distance(logmodel2)
+plot(outlierscooks)
+abline(h = 12*mean(outlierscooks, na.rm=T), col="red") #typical cutoff is 4 times cooks distance
+
+moneyballfinal <- cbind(moneyballlog2, outlierscooks)
+moneyballfinal <- moneyballfinal[which(moneyballfinal$outlierscooks < 12*mean(outlierscooks)),]
+
+### Final model
+### Model 6.3
+finalmodel <- lm(TARGET_WINS ~ ., data=moneyballfinal[c(2,3,4,5,6,7,8,9,10,16,17,19,21,22,23,24,25,27)])
+summary(finalmodel)
+vif(finalmodel)
+
+par(mfrow=c(2,2))
+plot(finalmodel)
+par(mfrow=c(1,1))
+
+### FaKE OUT - One More Model
+### Outliers and Leverage Points
+summary(influentialobs <- influence.measures(stepwiselog2))
+
+plot(dffits(stepwiselog2))
+dffitslog <- dffits(stepwiselog2)
+moneyballfinal <- cbind(moneyballlog2,dffitslog)
+
+moneyballfinal$absdf <- abs(moneyballfinal$dffitslog)
+moneyballfinal <- moneyballfinal[which(moneyballfinal$absdf < 0.004244763),] #severely limits the nubmer of observations  
+# 2*(sqrt(p+1)/(n-p-1)) = 2*(sqrt(18)/1999)
+
+outlierscooks <- cooks.distance(stepwiselog2)
+plot(outlierscooks)
+abline(h = 12*mean(outlierscooks, na.rm=T), col="red") #typical cutoff is 4 times cooks distance
+
+moneyballfinal <- cbind(moneyballlog2, outlierscooks)
+moneyballfinal <- moneyballfinal[which(moneyballfinal$outlierscooks < 12*mean(outlierscooks)),]
+
+### Final model
+### Model 9.2
+finalmodel2start <- lm(TARGET_WINS ~ ., data=moneyballlog2[-c(7,8)]) #remove batting SO and BB due to high VIF
+finalmodel2 <- stepAIC(finalmodel2start, direction = "both")
+summary(finalmodel2)
+vif(finalmodel2)
+
+par(mfrow=c(2,2))
+plot(finalmodel2)
+par(mfrow=c(1,1))
